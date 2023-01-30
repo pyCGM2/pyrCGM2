@@ -1,0 +1,225 @@
+---
+title: "Comparaison de 2 sessions d 'analyse de marche"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Comparaison de 2 sessions d 'analyse de marche}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message=FALSE
+)
+```
+
+```{r setup}
+devtools::load_all()
+#library(pyrCGM2)
+windowsFonts(Times=windowsFont("TT Times New Roman"))
+```
+
+Après avoir tracé les resultats d'une session d'analyse du mouvement dans la vignette : `scenario1-GaitAnalysisReport [fr]` , il est courant de suivre l'évolution d un sujet et d 'avoir à tracer les courbes representant 2 sessions d'analyse. C est l objectif de cette vignette
+
+## Chargement des données
+
+Nous appelons ici 2 fichiers excel correspondants aux 2 sessions à comparer. Puis nous employons la fonction `constructTableFromXls` pour construire le tableau de données
+
+```{r}
+xlsfiles1 <- dirname(getwd()) %+% "/data/gaitScenario/GaitAnalysis_OneSubject_PreOp.xls"
+xlsfiles2 <- dirname(getwd()) %+% "/data/gaitScenario/GaitAnalysis_OneSubject_PostOp.xls"
+
+xlsfiles <- c(xlsfiles1,xlsfiles2) # liste de fichiers
+kinematicTable <- constructTableFromXls(xlsfiles, "Kinematic cycles") # construction des données
+
+```
+
+### Chargement des données normatives
+
+```{r}
+normativeXls <- "C:/Users/fleboeuf/Documents/Programmation/pyCGM2/pyrCGM2/" %+% "/data/normative/pyCGM2-Schwartz2008.xlsx"
+normativeTable = loadNormativeDataSet(normativeXls, "Descriptive Kinematics")
+```
+
+## Manipulation des données
+
+### Definition du facteur de comparaison
+
+L'emploi d un facteur de comparaison prend tout son sens. Nous definissons comme `Comparisonfactor`, la colonne `Condition`, laquelle regroupe les modalités *pre* et \*PostOp\*
+
+```{r}
+
+kinematicTable <- kinematicTable %>%
+  defineComparisonfactor(c("Condition"))
+
+```
+
+### Statistiques descriptives
+
+alculons la moyenne et l 'ecart type des données
+
+```{r}
+descKinematicTable <- DescritiveFrameSequence(kinematicTable,bySubjectFlag = FALSE)
+```
+
+## Tracé graphique
+
+les fonctions employées pour tracer les graphiques restent similaires à celles employées dans la vignette `scenario1-GaitAnalysisReport [fr]` . Les courbes vont automatiquement de la colonne `Comparisonfactor` et l'afficher en légende.
+
+### Tracé simple
+
+```{r}
+descDataToPlot = filter(descKinematicTable,Label == "LKneeAngles" & Axis == "X" & EventContext =="Left")
+
+ggplotLayer(legendPosition = "top",iTitle="Knee flexion")+
+  geom_descriptiveLine(descDataToPlot,color = "ComparisonFactor")+
+  geom_corridor_ribbon (descDataToPlot) +
+  geom_gaitPhaseLines(descDataToPlot)+
+  geom_normative_ribbon(filter(normativeTable,Condition == "free" & Label == "KneeAngles" & Axis == "X"))
+```
+
+### tracé d'un panel de courbe
+
+```{r,fig.height=11, fig.width=8}
+# Pelvis ------------------------------------------------------------------
+  datatoPlot = filter(descKinematicTable,Label == "LPelvisAngles" & Axis == "X" & EventContext =="Left")
+  Pelvis_X = ggplotLayer(legendPosition = "none",iTitle="Pelvic tilt") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)
+  
+  datatoPlot = filter(descKinematicTable,Label == "LPelvisAngles" & Axis == "Y" & EventContext =="Left")
+  Pelvis_Y = ggplotLayer(legendPosition = "none",iTitle="Pelvic obliquity") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)
+  
+  datatoPlot = filter(descKinematicTable,Label == "LPelvisAngles" & Axis == "Z" & EventContext =="Left")
+  Pelvis_Z = ggplotLayer(legendPosition = "none",
+                         iTitle="Pelvic Rotation") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)
+
+  # Hip ------------------------------------------------------------------
+  datatoPlot = filter(descKinematicTable,Label == "LHipAngles" & Axis == "X" & EventContext =="Left")
+  Hip_X = ggplotLayer(legendPosition = "none",
+                      iTitle="Hip flex") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)
+  
+  datatoPlot = filter(descKinematicTable,Label == "LHipAngles" & Axis == "Y" & EventContext =="Left")
+  Hip_Y = ggplotLayer(legendPosition = "none",
+                      iTitle="Hip abduction") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)
+  
+  datatoPlot = filter(descKinematicTable,Label == "LHipAngles" & Axis == "Z" & EventContext =="Left")
+  Hip_Z = ggplotLayer(legendPosition = "none",
+                      iTitle="Hip Rotation") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)  
+
+  # Knee ------------------------------------------------------------------
+  datatoPlot = filter(descKinematicTable,Label == "LKneeAngles" & Axis == "X" & EventContext =="Left")
+  Knee_X = ggplotLayer(legendPosition = "none",
+                       iTitle="Knee flex") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)
+  
+  datatoPlot = filter(descKinematicTable,Label == "LKneeAngles" & Axis == "Y" & EventContext =="Left")
+  Knee_Y = ggplotLayer(legendPosition = "none",
+                       iTitle="Knee abduction") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)
+  
+  datatoPlot = filter(descKinematicTable,Label == "LKneeAngles" & Axis == "Z" & EventContext =="Left")
+  Knee_Z = ggplotLayer(legendPosition = "none",
+                       iTitle="Knee Rotation") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)  
+  
+  # Ankle ------------------------------------------------------------------
+  datatoPlot = filter(descKinematicTable,Label == "LAnkleAngles" & Axis == "X" & EventContext =="Left")
+  Ankle_X = ggplotLayer(legendPosition = "none",
+                        iTitle="Ankle flex") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)
+  
+  Ankle_Y = NULL
+  
+  datatoPlot = filter(descKinematicTable,Label == "LFootProgressAngles" & Axis == "Z" & EventContext =="Left")
+  footProgression_Z = ggplotLayer(legendPosition = "none",
+                                  iTitle="Foot Progression") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)  
+  
+  p1 = plot_grid(Pelvis_X, Pelvis_Y,Pelvis_Z,ncol=3)
+  p2 = plot_grid(Hip_X, Hip_Y,Hip_Z,ncol=3)
+  p3 = plot_grid(Knee_X, Knee_Y,Knee_Z,ncol=3)
+  p4 = plot_grid(Ankle_X, Ankle_Y,footProgression_Z,ncol=3)
+
+
+   legend_shared <- get_legend(Pelvis_X +
+                              theme(legend.position="bottom")+
+                                guides(fill=guide_legend(nrow=2,byrow=TRUE)))
+   fig = plot_grid(p1, p2,p3, p4,
+                   legend_shared,
+                   nrow = 5,rel_heights = c(1,1,1,1, .2))
+
+   fig
+```
+
+## Utilisation d'une métrique pour évaluer une différence
+
+pyrCGM2 s'appuie sur les metriques proposées dans le package [Metrics](https://cran.r-project.org/web/packages/Metrics/Metrics.pdf)
+
+Il est possible d'employer l'une des metriques mis à disposition pour comparer les données articulaires (cad les Frames 0 a 100) avec le code suivant
+
+```{r}
+metrictable0 = kinematicTable%>%
+  select(ComparisonFactor,Id,Label,Axis,EventContext,Cycle,Frame0:Frame100)%>%
+  pivot_longer(cols = starts_with("Frame"), values_to = "Value", names_to = "Variable")%>%
+  pivot_wider(names_from = ComparisonFactor,values_from = Value)%>%
+  group_by(Id,Label,Axis,EventContext,Cycle)%>%
+  mutate(Metrics = Metrics::mae(`pre`,`postOp`),
+         Comparisonlabel="compWithMAE")%>%
+  select(Id,Label,Axis,EventContext,Cycle,Metrics,Comparisonlabel)%>%
+  distinct()%>%
+  rename(Mae = Metrics)
+```
+
+La métrique est appelé à la ligne `` Metrics = Metrics::mae(`pre`,`postOp`) `` . Il s agit ici de la Mean Absolute Error. Elle compare les modalités *pre* et *postOp* de la colonne `ComparisonFactor`
+
+Le tableau de sortie inclus une colonne , initialement `Metrics`, puis renommer `MAE` à la dernière ligne, ainsi qu 'une colonne `ComparisonLabel` utilisée uniquement pour décrire très succinctement la comparaison effectuée
+
+```{r}
+head(metrictable0)
+```
+
+**Pour plus de simplicité, nous avons implémenté des fonctions plus explicites (ouf)**.
+
+Pour calculer la MAE entre les 101 frames des 2 modalités *pre* et *postOp* de la colonne `ComparisonFactor`, on emploiera :
+
+```{r,eval=FALSE}
+computeMAE(kinematicTable, "pre","postOp",comparisonLabel = "MAEde0a100")
+
+```
+
+Si on veut se restreindre aux frames0 a 10, on utilisera :
+
+```{r,eval=FALSE}
+computeMAE(kinematicTable, "pre","postOp",
+           vars=Frame0:Frame010,
+           comparisonLabel = "MAEde0a10")
+
+```
+
+On peut aussi utiliser la MAE sur des colonnes représentant les paramètres spatio-temporels
+
+```{r,eval=FALSE}
+computeMAE(kinematicTable, "pre","postOp",
+           vars=c("speed","cadence"),colwise=TRUE,
+           comparisonLabel = "MAEsurPst")
+```
+
+il faut alors bien noter l'activation de l 'argument `colwise` pour pouvoir calculer la MAE sur chaque variable

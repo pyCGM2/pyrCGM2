@@ -1,0 +1,212 @@
+---
+title: "scenario1-Construire un rapport d'analyse de la marche"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{scenario-GaitAnalysisReport}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message=FALSE
+)
+```
+
+```{r setup}
+devtools::load_all()
+#library(pyrCGM2)
+windowsFonts(Times=windowsFont("TT Times New Roman"))
+```
+
+Construire un rapport de marche représentant la cinématique articulaire est l utilisation la plus basique du package `pyrCGM2`. Dans cette vignette, il s'agit de principalement de présenter les fonctions permettant de construire les graphiques
+
+TODO :
+
+-   expliquer comment tracer les données spatio-temporelles
+
+## Chargemement des données
+
+### Données mesurées
+
+Nous appelons ici le fichier excel, et
+
+```{r}
+filename <- dirname(getwd()) %+% "/data/gaitScenario/GaitAnalysis_OneSubject.xls"
+kinematicTable = read_excel(filename, sheet = "Kinematic cycles" ,col_names = TRUE,.name_repair = "minimal")
+```
+
+### Chargement des données normatives
+
+Il convient de tracer les données articulaires en placant un corridor de normalité, construit sur à partir de mesures collectées chez une population asymptomatique.
+
+Nous avons inclus dans pyrCGM2, le jeu de données normatives établis par Schwartz et al, 2008. on appelle ce jeu de données avec le code:
+
+```{r}
+normativeXls <- "C:/Users/fleboeuf/Documents/Programmation/pyCGM2/pyrCGM2/" %+% "/data/normative/pyCGM2-Schwartz2008.xlsx"
+normativeTable = loadNormativeDataSet(normativeXls, "Descriptive Kinematics")
+```
+
+## Manipulation des données
+
+### Définition du facteur de comparaison
+
+Pour ce scenario, il n 'y a pas vraiment de facteur de comparaison. Mais il est important d en définir un, même de facon arbitraire, de maniere a pouvoir utiliser les fonctions r de pyrCGM2.
+
+Dans le code ci-dessous, nous allons donc utiliser comme facteur de comparaison, la colonne `Condition`
+
+```{r}
+kinematicTable <- kinematicTable %>%
+  defineComparisonfactor(c("Condition"))%>%
+  mutate(Index = 1:nrow(.))
+```
+
+NB : j ai aussi rajouté une colonne index, afin que chaque ligne est un index.
+
+### Statistiques descriptives
+
+Calculons la moyenne et l 'ecart type des données
+
+```{r}
+descKinematicTable <- DescritiveFrameSequence(kinematicTable,bySubjectFlag = FALSE)
+```
+
+NB: comme il n y a qu'un seul sujet, activer l 'argument `bySubjectFlag` n 'aura aucun effet.
+
+## Tracés graphiques
+
+pyrCGM2 utilise la librarie [ggplot2](ggplot2.tidyverse.com). En lieu et place de la fonction ggplot::ggplot(), nous avons defini notre propre *Layer* et proposons des *geoms* pour tracer les resultats.
+
+### Tracé simple: tracé de la moyenne et de l'ecart type
+
+Voici, par exemple, le code permettant de tracer la moyenne et std de la flexion du genou gauche, normalisée sur un cycle gauche
+
+```{r}
+descDataToPlot = filter(descKinematicTable,Label == "LKneeAngles" & Axis == "X" & EventContext =="Left")
+
+ggplotLayer(legendPosition = "none",iTitle="Knee flexion")+
+  geom_descriptiveLine(descDataToPlot,color = "ComparisonFactor")+
+  geom_corridor_ribbon (descDataToPlot) +
+  geom_gaitPhaseLines(descDataToPlot)+
+  geom_normative_ribbon(filter(normativeTable,Condition == "free" & Label == "KneeAngles" & Axis == "X"))
+```
+
+-   `geom_descriptiveLine` trace la moyenne
+
+-   `geom_corridor_ribbon` trace le corridor
+
+-   `geom_gaitPhaseLines` trace les lignes verticales correspondant aux phases du cycle
+
+-   `geom_normative_ribbon` trace le corridor de normalité. Il faut filtrer le tableau `normativeTable` pour récupérer la donnée articulaire.
+
+### Tracé simple : tracé de tous les cycles
+
+Pour tracer tous les cycles, il faut appeler la géometrie : `geom_consistencyLine` et travailler sur le tableau de données initialement chargé
+
+```{r}
+
+dataToplot = filter(kinematicTable,
+                    Label == "LKneeAngles" & Axis == "X" & 
+                    EventContext =="Left") 
+
+ggplotLayer(legendPosition = "none",iTitle="Knee Angles")+
+  geom_consistencyLine(dataToplot,color = "ComparisonFactor")+
+  geom_normative_ribbon(filter(normativeTable,Condition == "free" & Label == "KneeAngles" & Axis == "X"))
+
+
+```
+
+### Tracé d'un panel graphique
+
+Il est possible de tracer un panel de résultats en construisant chaque graphique, puis en les plaçant dans une grille avec la librairie [cowplot](https://cran.r-project.org/web/packages/cowplot/vignettes/introduction.html).
+
+Voici le code complet tracant la cinematique articulaire du coté Gauche.
+
+```{r,fig.height=11, fig.width=8}
+# Pelvis ------------------------------------------------------------------
+  datatoPlot = filter(descKinematicTable,Label == "LPelvisAngles" & Axis == "X" & EventContext =="Left")
+  Pelvis_X = ggplotLayer(legendPosition = "none",iTitle="Pelvic tilt") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)
+  
+  datatoPlot = filter(descKinematicTable,Label == "LPelvisAngles" & Axis == "Y" & EventContext =="Left")
+  Pelvis_Y = ggplotLayer(legendPosition = "none",iTitle="Pelvic obliquity") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)
+  
+  datatoPlot = filter(descKinematicTable,Label == "LPelvisAngles" & Axis == "Z" & EventContext =="Left")
+  Pelvis_Z = ggplotLayer(legendPosition = "none",
+                         iTitle="Pelvic Rotation") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)
+
+  # Hip ------------------------------------------------------------------
+  datatoPlot = filter(descKinematicTable,Label == "LHipAngles" & Axis == "X" & EventContext =="Left")
+  Hip_X = ggplotLayer(legendPosition = "none",
+                      iTitle="Hip flex") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)
+  
+  datatoPlot = filter(descKinematicTable,Label == "LHipAngles" & Axis == "Y" & EventContext =="Left")
+  Hip_Y = ggplotLayer(legendPosition = "none",
+                      iTitle="Hip abduction") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)
+  
+  datatoPlot = filter(descKinematicTable,Label == "LHipAngles" & Axis == "Z" & EventContext =="Left")
+  Hip_Z = ggplotLayer(legendPosition = "none",
+                      iTitle="Hip Rotation") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)  
+
+  # Knee ------------------------------------------------------------------
+  datatoPlot = filter(descKinematicTable,Label == "LKneeAngles" & Axis == "X" & EventContext =="Left")
+  Knee_X = ggplotLayer(legendPosition = "none",
+                       iTitle="Knee flex") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)
+  
+  datatoPlot = filter(descKinematicTable,Label == "LKneeAngles" & Axis == "Y" & EventContext =="Left")
+  Knee_Y = ggplotLayer(legendPosition = "none",
+                       iTitle="Knee abduction") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)
+  
+  datatoPlot = filter(descKinematicTable,Label == "LKneeAngles" & Axis == "Z" & EventContext =="Left")
+  Knee_Z = ggplotLayer(legendPosition = "none",
+                       iTitle="Knee Rotation") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)  
+  
+  # Ankle ------------------------------------------------------------------
+  datatoPlot = filter(descKinematicTable,Label == "LAnkleAngles" & Axis == "X" & EventContext =="Left")
+  Ankle_X = ggplotLayer(legendPosition = "none",
+                        iTitle="Ankle flex") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)
+  
+  Ankle_Y = NULL
+  
+  datatoPlot = filter(descKinematicTable,Label == "LFootProgressAngles" & Axis == "Z" & EventContext =="Left")
+  footProgression_Z = ggplotLayer(legendPosition = "none",
+                                  iTitle="Foot Progression") + 
+    geom_descriptiveLine(datatoPlot)+
+    geom_gaitPhaseLines(datatoPlot)  
+  
+  p1 = plot_grid(Pelvis_X, Pelvis_Y,Pelvis_Z,ncol=3)
+  p2 = plot_grid(Hip_X, Hip_Y,Hip_Z,ncol=3)
+  p3 = plot_grid(Knee_X, Knee_Y,Knee_Z,ncol=3)
+  p4 = plot_grid(Ankle_X, Ankle_Y,footProgression_Z,ncol=3)
+
+
+   legend_shared <- get_legend(Pelvis_X +
+                              theme(legend.position="bottom")+
+                                guides(fill=guide_legend(nrow=2,byrow=TRUE)))
+   fig = plot_grid(p1, p2,p3, p4,
+                   legend_shared,
+                   nrow = 5,rel_heights = c(1,1,1,1, .2))
+
+   fig
+```

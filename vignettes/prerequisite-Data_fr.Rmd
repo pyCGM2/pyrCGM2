@@ -1,0 +1,138 @@
+---
+title: "Pre-requis : l'organisation du tableau de données"
+author: "Fabien Leboeuf"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message=FALSE
+)
+
+devtools::load_all()
+#library(pyrCGM2)
+windowsFonts(Times=windowsFont("TT Times New Roman"))
+```
+
+`pyrCGM2` est un package R développé pour manipuler les tableaux de données regroupant la cinématique et la dynamique articulaire d 'une marche, produits par la librairie python [pyCGM2](https://pycgm2.netlify.app/) **Avant d 'utiliser les fonctions R, il est important de bien connaitre l'organisation du tableau de données**.
+
+## Comment charger un tableau de données
+
+Les tableaux de données exportés par [pyCGM2](https://pycgm2.netlify.app/) sont au format excel. Il est trés facile de les lire avec la fonction `read_excel` du package [readXL](https://readxl.tidyverse.org/).
+
+Par exemple, chargeons la feuille `Kinematic cycles` du tableau `/data/gaitScenario/GaitAnalysis_OneSubject.xls`.
+
+```{r}
+filename <- dirname(getwd()) %+% "/data/gaitScenario/GaitAnalysis_OneSubject.xls"
+table = read_excel(filename, sheet = "Kinematic cycles" ,col_names = TRUE,.name_repair = "minimal")
+```
+
+Pour charger, plusieurs fichiers, nous utiliserons la fonction `constructTableFromXls` en indiquant la feuille à charger. En sortie, nous retrouverons un tableau concaténant les feuilles des fichiers excel appelés.
+
+```{r}
+xlsfiles1 <- dirname(getwd()) %+% "/data/gaitScenario/GaitAnalysis_OneSubject_PreOp.xls"
+xlsfiles2 <- dirname(getwd()) %+% "/data/gaitScenario/GaitAnalysis_OneSubject_PostOp.xls"
+
+xlsfiles <- c(xlsfiles1,xlsfiles2) # liste de fichiers
+dataFrame1 <- constructTableFromXls(xlsfiles, "Kinematic cycles") # construction des données
+```
+
+## Composition du tableau
+
+le tableau de données présente **sur une ligne** , les données de cinématique/dynamique articulaire normalisé sur un cycle de marche. Ainsi, nous trouverons 101 colonnes intitulés `Frame0` a `Frame100` rapportant, par exemple la flexion de genou gauche d'un cycle de marche gauche, localisable par les colonnes `Label=="LKneeAngles`, `Axis=="X"`,`EventContext="Left"`.
+
+En dehors des colonnes (`Label,Axis,EventContext,Cycle,Frame0,...Frame100`), Nous trouverons les colonnes rapportant les paramètres spatio-temporelles ( vitesse, cadence,...) ainsi que les modalités expérimentales de l'analyse.
+
+Voici l'ensemble des colonnes composant le tableau de données ( Hormis les colonnes `Frame#i`)
+
+```{r, echo=FALSE}
+table %>% select(-starts_with("Frame"))%>%names()
+```
+
+Il est important de bien identifier le sujet dans la colonne \`Id\`.
+
+Les données cinematique/dynamique articulaires suivent la nomenclature Vicon. la colonne `Axis` se compose de modalité X, Y et Z représentant respectivement les plans sagital, coronal et transversal.
+
+## Manipulation des données
+
+Le package [dplyr](https://dplyr.tidyverse.org/) propose des verbes parfaitement adaptés à la manipulation des données.
+
+Vous pouvez filtrer et sélectionner des colonnes de la maniere suivante :
+
+```{r, echo=TRUE}
+table %>%
+  filter(Label=="LKneeAngles" & Axis=="X" & EventContext=="Left")%>%
+  select(Label,Axis,EventContext,Cycle,Frame0,Frame100,cadence,speed)
+```
+
+### Définir le facteur de comparaison
+
+Une colonne n 'apparaît pas dans le tableau. Il s'agit de la colonne `ComparisonFactor`. Pourtant son rôle est essentiel, surtout si on est amené à devoir comparer des grandeurs . `ComparisonFactor` peut caracteriser une condition expérimentale (par exemple : *Pre-BlocMoteur)* , l 'utilisation d'un méthode biomécanique particulière (par exemple: *kalmanFilter*) appliquée à l 'ensemble des données cinématique/dynamique.
+
+On définit la colonne `ComparisonFactor`,
+
+soit très simplement par :
+
+```{r}
+table$Comparisonfactor = "preBloc"
+```
+
+soit avec dplyr :
+
+```{r, eval=FALSE}
+table %>%
+  mutate(ComparisonFactor = "preBloc")
+```
+
+Il peut aussi s\'avérer que `ComparisonFactor` soit une combinaison des colonnes déja existantes dans le tableau. On utilisera alors la fonction `defineComparisonFactor`
+
+```{r,eval=TRUE}
+table2 = table%>%
+  defineComparisonfactor(c("Condition","Shoes"))
+```
+
+ici, `ComparisonFactor` concaténera les colonnes `Condition` et `Shoes.`
+
+### Statistiques descriptives
+
+Nous récupérons ici, le variable `table2` incluant la colonne `ComparisonFactor`. Pour obtenir la moyenne et l 'écart type de chaque donnée cinématique/dynamique articulaire, il faut employer la fonction `DescritiveFrameSequence`. Elle va retourner une nouvelle table avec une colonne `Stats` précisant si la ligne regroupe des valeurs moyenne et les ecart type
+
+```{r}
+descritiveTable <- DescritiveFrameSequence(table2,bySubjectFlag = FALSE)
+```
+
+on peut aussi se focaliser sur des scalaires, ie des colonnes specifiques (à l exception des colonnes Frames) du tableau avec la fonction `DescritiveScalarSequence`.
+
+Par exemple, nous traitons ici uniquement les colonnes correspondant à la vitesse et à la cadence
+
+```{r,echo=TRUE,message=FALSE}
+variables = c("speed","cadence")
+descritiveTable2 <- DescritiveScalarSequence(table2,variables,bySubjectFlag = FALSE)
+
+```
+
+### Quelques fonctions R utiles
+
+#### Regroupement des cotés
+
+Il est parfois utiles de regrouper les données articulaires des cotés droit et gauche. Pour cela, on peut utiliser la fonction `constructOverallEvent`. il faut préciser les facteurs permettant de regrouper les données. Généralement, il s agit de l 'identifiant et du facteur de comparaison
+
+```{r, eval=FALSE}
+table2%>%
+  constructOverallEvents( c("Id","ComparisonFactor"))
+```
+
+le tableau de sortie, va alors :
+
+-   retirer la première lettre des modalités de la colonne `Label`
+
+-   remplacer `Left` et `Right` de la colonne `EventContext` par `Overall`
+
+-   recompter les cycles
