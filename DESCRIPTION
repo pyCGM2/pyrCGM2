@@ -1,12 +1,18 @@
 Package: pyrCGM2
-Title: What the Package Does (One Line, Title Case)
+Title: a r-package to manipulate the pyCGM2 spreadsheet
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    person("Fabien", "Leboeuf", , "fabien.leboeuf@chu-nantes.fr", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-6483-9150"))
+Description: 
+  This package manipulates the spreadsheet exported from pyCGM2.
+  The spreadsheet gathers time-normalized joint variable ( kinematics or kinetics). 
+  pyrCGM2 offers user-friendy R fonctions fro plotting gait panels or quantifies a difference
+  between two or more variables with a metrics.
+  I try to make things simple as possible with explicit R functions. 
+  For those who want to start with, i recommand to check out the different vignettes 
+  representing a concrete gait analysis scenario. 
+License: `use_mit_license()`
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
