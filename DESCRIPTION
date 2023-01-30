@@ -14,7 +14,9 @@ Suggests:
     knitr,
     rmarkdown
 Depends:
-  tidyverse,
+  dplyr,
+  ggplot2,
+  tidyr,
   readxl,
   cowplot,
   Metrics
