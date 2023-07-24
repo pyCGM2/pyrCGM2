@@ -17,6 +17,6 @@
 #' @export
 #'
 #' @examples
-`%ni%` <- function(){
-  Negate(`%in%`)
+`%ni%` <- function(x,y){
+  Negate(`%in%`)(x, y)
 }

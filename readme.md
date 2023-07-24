@@ -29,7 +29,7 @@ install_github(pyCGM2/pyrCGM2)
 
 Ce package est expérimental et des changements peuvent avoir lieu à l'avenir.
 
-J ai intégré, a ce jour, des fonctions relatifs à une exploitation basiques des données. Il est prévu l\'intégration d'autres fonctions permettant entre autre de calculer la variabilité des courbes.
+J ai intégré, a ce jour, des fonctions relatifs à une exploitation basiques des données. Il est prévu l'intégration d'autres fonctions permettant entre autre de calculer la variabilité des courbes.
 
 ## Rapporter une erreur
 

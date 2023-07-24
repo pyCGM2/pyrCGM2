@@ -108,7 +108,7 @@ Nous récupérons ici, le variable `table2` incluant la colonne `ComparisonFacto
 descritiveTable <- DescritiveFrameSequence(table2,bySubjectFlag = FALSE)
 ```
 
-on peut aussi se focaliser sur des scalaires, ie des colonnes specifiques (à l exception des colonnes Frames) du tableau avec la fonction `DescritiveScalarSequence`.
+on peut aussi se focaliser sur des scalaires, ie des colonnes spécifiques (à l exception des colonnes Frames) du tableau avec la fonction `DescritiveScalarSequence`.
 
 Par exemple, nous traitons ici uniquement les colonnes correspondant à la vitesse et à la cadence
 
