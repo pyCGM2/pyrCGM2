@@ -9,9 +9,6 @@ defineComparisonfactor(table, groupBy)
 \arguments{
 \item{groupBy}{}
 }
-\value{
-
-}
 \description{
 define the comparison factor
 }

@@ -9,9 +9,6 @@ geom_corridor_ribbon(descrFrames)
 \arguments{
 \item{descrFrames}{a descriptive dataFrame Sequence}
 }
-\value{
-
-}
 \description{
 construction of the  standard deviation ribbon
 }

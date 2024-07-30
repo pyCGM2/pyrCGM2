@@ -16,9 +16,6 @@ geom_consistencyLine(
 
 \item{lineWidth}{}
 }
-\value{
-
-}
 \description{
 Title
 }

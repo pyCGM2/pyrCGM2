@@ -9,9 +9,6 @@ DescritiveScalarSequence(table, dependantVariables, bySubjectFlag = TRUE)
 \arguments{
 \item{bySubjectFlag}{}
 }
-\value{
-
-}
 \description{
 compute the descriptive statistics of scalar values
 }

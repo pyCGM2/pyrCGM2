@@ -26,9 +26,6 @@ computeMAE(
 
 \item{colwise}{return metrics for each items of vars}
 }
-\value{
-
-}
 \description{
 compute the Mean Absolute Deviation
 }

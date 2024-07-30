@@ -11,9 +11,6 @@ constructTableFromXls(fullXlsFiles, sheet)
 
 \item{sheet}{sheetname to extract from the xls files}
 }
-\value{
-
-}
 \description{
 Construct a dataframe from a list of xls files
 }

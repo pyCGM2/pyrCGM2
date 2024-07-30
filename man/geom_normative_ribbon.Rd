@@ -9,9 +9,6 @@ geom_normative_ribbon(normativeDataSet)
 \arguments{
 \item{normativeDataSet}{the normative data set.}
 }
-\value{
-
-}
 \description{
 Title
 }

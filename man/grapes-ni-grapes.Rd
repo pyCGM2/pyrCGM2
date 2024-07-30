@@ -4,10 +4,7 @@
 \alias{\%ni\%}
 \title{negative operator}
 \usage{
- \%ni\% 
-}
-\value{
-
+x \%ni\% y
 }
 \description{
 negative operator

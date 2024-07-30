@@ -16,9 +16,6 @@ geom_descriptiveLine(
 
 \item{lineWidth}{}
 }
-\value{
-
-}
 \description{
 Title
 }

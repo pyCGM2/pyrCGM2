@@ -2,7 +2,7 @@
 title: "Comparaison de 2 sessions d 'analyse de marche"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Comparaison de 2 sessions d 'analyse de marche}
+  %\VignetteIndexEntry{scenario2- Session Comparison}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -39,7 +39,8 @@ kinematicTable <- constructTableFromXls(xlsfiles, "Kinematic cycles") # construc
 ### Chargement des données normatives
 
 ```{r}
-normativeXls <- "C:/Users/fleboeuf/Documents/Programmation/pyCGM2/pyrCGM2/" %+% "/data/normative/pyCGM2-Schwartz2008.xlsx"
+normativeXls <- "C:/Users/fleboeuf/Documents/Programmation/pyrCGM2/" %+% 
+  "data/normative/pyCGM2-Schwartz2008.xlsx"
 normativeTable = loadNormativeDataSet(normativeXls, "Descriptive Kinematics")
 ```
 

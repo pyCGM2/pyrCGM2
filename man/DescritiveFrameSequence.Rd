@@ -9,9 +9,6 @@ DescritiveFrameSequence(table, bySubjectFlag = TRUE)
 \arguments{
 \item{bySubjectFlag}{}
 }
-\value{
-
-}
 \description{
 return descriptive stats
 }

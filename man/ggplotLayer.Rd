@@ -14,9 +14,6 @@ ggplotLayer(
 \arguments{
 \item{legendPosition}{}
 }
-\value{
-
-}
 \description{
 pyrCGM2 ggplot layer
 }

@@ -9,9 +9,6 @@ a \%+\% b
 \arguments{
 \item{b}{}
 }
-\value{
-
-}
 \description{
 string concatenation operator
 }

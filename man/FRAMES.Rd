@@ -6,9 +6,6 @@
 \usage{
 FRAMES()
 }
-\value{
-
-}
 \description{
 constant frame labels
 }

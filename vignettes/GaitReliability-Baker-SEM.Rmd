@@ -1,0 +1,132 @@
+---
+title: "Variabilité de la marche"
+author: "Fabien Leboeuf"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Richard SEM}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message=FALSE
+)
+
+devtools::load_all()
+#library(pyrCGM2)
+windowsFonts(Times=windowsFont("TT Times New Roman"))
+```
+
+
+```{r}
+filename <- dirname(getwd()) %+% "/data/gaitReliability/Reliability_CGM24_10Sub_3Op_2Ses.xlsx"
+kinematicTable0 = read_excel(filename ,col_names = TRUE,.name_repair = "minimal")
+
+
+
+```
+
+
+```{r}
+
+# homegeize tabe with same
+kinematicTable =  kinematicTable0%>%
+  homogeniseCycles(c("Id","Operator","Session"))%>% 
+  constructOverallEvents(c("Id","Operator","Session"))%>%
+  defineComparisonfactor(c("Operator","Session"))
+```
+
+## Standard error of measurement
+
+
+```{r sem}
+
+nParticipant = 10
+nAssessor = 3
+
+# data preparation
+gkt = kinematicTable  %>%
+  pivot_longer(starts_with("Frame"),names_to = "Frames", values_to = "Value")%>%
+  rename(Participant = Id, 
+         Assessor = Operator)
+
+# computation
+sadf = ComputeSessionAverage(gkt)
+semAss = Sem_byAssessor(sadf)
+semAll = Sem_allAssessors(sadf)
+ba = betweenAssessors(sadf)
+tes = withinAssessorReport(semAss,nAssessor,nParticipant)
+
+```
+**withinassessor report**
+```{r}
+tes = withinAssessorReport(semAss,nAssessor,nParticipant)
+tes$Label = as.factor(tes$Label)
+tes$Label = factor( tes$Label,levels( tes$Label)[c(5,3,4,1,2)]) #  reorder as Pevis,hip, knee, angles
+
+
+knitr::kable(arrange(filter(tes,Assessor=="OP01"),Label),
+             digits = 2,
+             caption = "Within Assessor #1 report")
+
+knitr::kable(arrange(filter(tes,Assessor=="OP02"),Label),
+             digits = 2,
+             caption = "Within Assessor #2 report")
+
+knitr::kable(arrange(filter(tes,Assessor=="OP03"),Label),
+             digits = 2,
+             caption = "Within Assessor #2 report")
+
+
+```
+
+```{r, fig.width=12}
+ggplot(data= tes, aes(x= Label, y=SemAvg, fill= Axis))+geom_bar(stat="identity",position = "dodge")+facet_grid(.~Assessor)+ggtitle("Within Assessor")+
+  geom_errorbar(aes(ymin=SemAvg, ymax=IC_up), width=.2,
+                position=position_dodge(.9))+
+  geom_text(aes(label=round(IC_up,2),y=IC_up), vjust=0, color="black",
+            position = position_dodge(0.9), size=3.5)+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+ylim(0,10)
+```
+
+
+
+**between assessor report**
+```{r}
+comparisonBA = betweenAssessorsReport(ba)
+comparisonBA$Label = as.factor(comparisonBA$Label)
+comparisonBA$Label = factor( comparisonBA$Label,levels( comparisonBA$Label)[c(5,3,4,1,2)]) #  reorder as Pevis,hip, knee, angles
+
+
+knitr::kable(arrange(filter(comparisonBA,Assessor=="OP01"),Label),
+             digits = 2,
+             caption = "Within Assessor #1 report")
+
+knitr::kable(arrange(filter(comparisonBA,Assessor=="OP02"),Label),
+             digits = 2,
+             caption = "Within Assessor #2 report")
+
+knitr::kable(arrange(filter(comparisonBA,Assessor=="OP03"),Label),
+             digits = 2,
+             caption = "Within Assessor #2 report")
+
+
+# knitr::kable(arrange(comparisonBA,Label),
+#            digits = 2,
+#            caption = "Between Assessor report")
+
+
+```
+
+```{r, fig.width=12}
+ggplot(data= comparisonBA, aes(x= Label, y=AbsoluteDifference, fill= Axis))+geom_bar(stat="identity",position = "dodge")+facet_grid(.~Assessor)+
+  ggtitle("Between Assessor ( Absolute difference)")+
+  geom_text(aes(label=round(AbsoluteDifference,2)), vjust=1, color="black",
+            position = position_dodge(0.9), size=3.5)+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))

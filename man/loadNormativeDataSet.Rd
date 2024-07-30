@@ -9,9 +9,6 @@ loadNormativeDataSet(fullXlsFile, sheet)
 \arguments{
 \item{sheet}{}
 }
-\value{
-
-}
 \description{
 load a normative dataset
 }

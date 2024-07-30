@@ -9,9 +9,6 @@ constructOverallEvents(df, groupBy, removeFirstCharacter = TRUE)
 \arguments{
 \item{removeFirstCharacter}{}
 }
-\value{
-
-}
 \description{
 merge the left and right eventCOntext
 }

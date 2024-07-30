@@ -11,9 +11,6 @@ geom_gaitPhaseLines(descrDataFrame, color = NULL)
 
 \item{color}{}
 }
-\value{
-
-}
 \description{
 draw gait phase as vertical lines
 }

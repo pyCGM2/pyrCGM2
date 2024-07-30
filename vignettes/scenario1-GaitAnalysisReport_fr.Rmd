@@ -45,7 +45,8 @@ Il convient de tracer les données articulaires en placant un corridor de normal
 Nous avons inclus dans pyrCGM2, le jeu de données normatives établis par Schwartz et al, 2008. on appelle ce jeu de données avec le code:
 
 ```{r}
-normativeXls <- "C:/Users/fleboeuf/Documents/Programmation/pyCGM2/pyrCGM2/" %+% "/data/normative/pyCGM2-Schwartz2008.xlsx"
+normativeXls <- "C:/Users/fleboeuf/Documents/Programmation/pyrCGM2/" %+% 
+  "data/normative/pyCGM2-Schwartz2008.xlsx"
 normativeTable = loadNormativeDataSet(normativeXls, "Descriptive Kinematics")
 ```
 

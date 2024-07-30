@@ -6,9 +6,6 @@
 \usage{
 STP()
 }
-\value{
-
-}
 \description{
 constant Spatio-temporal parameter labels
 }
