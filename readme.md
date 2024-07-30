@@ -22,7 +22,7 @@ vous pouvez installer le package en tapant :
 
 ```{r}
 library(devtools)
-install_github(pyCGM2/pyrCGM2)
+install_github("pyCGM2/pyrCGM2")
 ```
 
 ## Remarques
