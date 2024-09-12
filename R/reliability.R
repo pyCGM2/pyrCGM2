@@ -111,7 +111,11 @@ Sem_byAssessor<-function(sessionAverage,Anova=TRUE){
     frames = sessionAverage %>%
       group_by(Assessor,Label,Axis,EventContext,Frames)%>%
       do(anova = aov(Avg ~ Participant, data=.))%>%
-      mutate(Sem = sigma(anova,na.rm = TRUE))
+      mutate(Sem = sigma(anova,na.rm = TRUE),
+             df_residual = df.residual(anova),
+             ic_upper = sqrt((df_residual)/(qchisq(0.05, df=df_residual))),
+             SemUpper = Sem *ic_upper
+             )
 
     framesAvg = frames %>%
       group_by(Assessor,Label,Axis,EventContext)%>%
@@ -155,7 +159,11 @@ Sem_allAssessors<-function(sessionAverage, Anova=TRUE){
     frames = sessionAverage %>%
       group_by(Label,Axis,EventContext,Frames)%>%
       do(anova = aov(Avg ~ Participant, data=.))%>%
-      mutate(Sem = sigma(anova,na.rm = TRUE))
+      mutate(Sem = sigma(anova,na.rm = TRUE),
+             df_residual = df.residual(anova),
+             ic_upper = sqrt((df_residual)/(qchisq(0.05, df=df_residual))),
+             SemUpper = Sem *ic_upper
+             )
 
     framesAvg = frames %>%
       group_by(Label,Axis,EventContext)%>%
@@ -262,16 +270,16 @@ betweenAssessorsReport<-function(betweenAssessorAssement){
 #' Report of the within asessor differences
 #'
 #' @param  sembyAssessordf [dataframe] standard error of measurement table computed by assessor
-#' @param  nAssesor [integer] number of assessors
+#' @param  nSession [integer] number of sessions
 #' @param  nParticipant [integer] number of participants
 #' @return []
 #' @examples
 #'
 #' @section Warning:
 #'
-withinAssessorReport<-function(sembyAssessordf,nAssesor,nParticipant){
+withinAssessorReport<-function(sembyAssessordf,nSession,nParticipant){
 
-  ic_upper = sqrt(((nAssesor-1)*nParticipant)/(qchisq(0.05, df=(nAssesor-1)*nParticipant)))
+  ic_upper = sqrt(((nSession-1)*nParticipant)/(qchisq(0.05, df=(nSession-1)*nParticipant)))
 
   ##  within Assessor
   overallDf = sembyAssessordf$overall
